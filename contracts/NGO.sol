@@ -1,5 +1,5 @@
 pragma solidity >= 0.5.0;
-
+pragma experimental ABIEncoderV2;
 import "./Primary.sol";
 
 contract NGO {
@@ -9,24 +9,18 @@ contract NGO {
     Primary primaryDeployed;
     struct NgoData {
         string name;
+        address ngoAddress;
         string domain;
-        bool blocked;
+        bool allowed;
         uint served;
     }
-    mapping (address => NgoData) private NgosList;
+    address[] ngoListArray;
+    mapping (address => NgoData) public NgosList;
 
     modifier onlyOwner {
         require(
             msg.sender == owner,
             "Only owner can call this function."
-        );
-        _;
-    }
-    //TO:DO check if the right msg.sender comes from primary
-    modifier isNGO {
-        require(
-            !NgosList[msg.sender].blocked,
-            "Only Legitimate NGOs can request for contract"
         );
         _;
     }
@@ -37,23 +31,39 @@ contract NGO {
         primaryDeployed = Primary(primaryContract);
     }
 
-    function removeNGO(address _address) external onlyOwner{
-        delete NgosList[_address];
-    }
-
     function removeNGO() external {
         delete NgosList[msg.sender];
     }
 
-    function addNewNGO(string calldata _name, string calldata _domain, address _eAddress) external {
-        NgosList[_eAddress] = NgoData({name: _name, domain: _domain, blocked: false, served: 0});
+    function addNewNGO(string calldata _name, string calldata _domain) external {
+        NgosList[msg.sender] = NgoData({name: _name, domain: _domain, allowed: true, served: 0, ngoAddress: msg.sender});
+        ngoListArray.push(msg.sender);
     }
 
     function blockNGO(address _eAddress) external onlyOwner{
-        NgosList[_eAddress].blocked = true;
+        NgosList[_eAddress].allowed = false;
     }
     
-    function startInitiative(string calldata _name, string calldata _desc, uint _target, string calldata _eType, bool  _active) external isNGO {
+    function startInitiative(string calldata _name, string calldata _desc, uint _target, string calldata _eType, bool  _active) external {
+        require(
+            NgosList[msg.sender].allowed,
+            "Only Legitimate NGOs can request for contract"
+        );
         primaryDeployed.startInitiative(_name, msg.sender, _desc, _target, _eType, _active);
+    }
+
+    function getNGOList() public view returns(string[] memory){
+        string[] memory content = new string[](ngoListArray.length);
+        uint j = 0;
+        for (uint i = 0; i < ngoListArray.length; i++) {
+            address temp = ngoListArray[i];
+            if(NgosList[temp].allowed){
+                NgoData memory ngoObj = NgosList[temp];
+                content[j] = string(abi.encodePacked(ngoObj.name, ngoObj.domain, primaryDeployed.addressToString(ngoObj.ngoAddress), primaryDeployed.uintToString(ngoObj.served)));
+
+            j += 1;
+            }
+        }
+        return content;
     }
 }

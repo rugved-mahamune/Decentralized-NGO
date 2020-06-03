@@ -42,12 +42,12 @@ contract Entity {
     }
 
     function voteForContract(string calldata _initiativeName) external isEntity{
-        primaryDeployed.requestInitiativeContract(msg.sender, _initiativeName);
+        primaryDeployed.requestInitiativeContract(_initiativeName, msg.sender);
         //can make this Delegate call
     }
 
-    function addNewEntity(string calldata _name, string calldata _eType, address _eAddress) external onlyOwner {
-        EntitiesList[_eAddress] = EData({name: _name, eType: _eType, blocked: false, served: 0});
+    function addNewEntity(string calldata _name, string calldata _eType) external onlyOwner {
+        EntitiesList[msg.sender] = EData({name: _name, eType: _eType, blocked: false, served: 0});
     }
 
     function blockEntity(address _eAddress) external onlyOwner{

@@ -1,14 +1,10 @@
 
 const primary = artifacts.require("Primary");
 const ngo = artifacts.require("NGO");
-
-module.exports = function(deployer) {
-  deployer.deploy(primary);
-};
+const entity = artifacts.require("Entity");
 
 module.exports = (deployer) => {
-    deployer.deploy(primary).then(function() {
-    deployer.deploy(ngo, primary.address)
-    deployer.deploy(entity, primary.address)
-    });
+    deployer.deploy(primary);
+    deployer.deploy(ngo, primary.address);
+    deployer.deploy(entity, primary.address);
   };
