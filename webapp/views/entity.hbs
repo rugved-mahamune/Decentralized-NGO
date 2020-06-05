@@ -1,0 +1,91 @@
+<h1>Decentralized NGO platform</h1><br/>
+<hr><br>
+<b><u>Entities List</u></b>
+<br> <br>
+<div id="rows2"></div>
+<hr>
+<script>
+    var entityDeployed;
+    function createEntity(){
+        entityDeployed.addNewEntity($('#entityname')[0].value, $('#entitydomain')[0].value).then(value => {
+        window.alert("Created a new Entity");
+    });
+    }
+</script>
+<div>
+    <h4>Create New Entity</h4><br>
+    <mat-label>Name</mat-label>
+    <input type="text" placeholder="Enter name" class="entityname" id="entityname"><br><br>
+    <mat-label>Type</mat-label>
+    <input matInput type="text" placeholder="Enter Domain" id="entitydomain"><br><br>
+    <button mat-raised-button color="primary" type="button" onclick="createEntity()">Create Entity</button>
+</div>
+<hr><br><br>
+
+<div style="display:none;">
+    <div id="entitiesdiv">
+        <div class="template2">
+            <strong>Name</strong>: <span class="name">Golden Retriever</span><br/>
+            <strong>Address</strong>: <span class="address">3</span><br/>
+            <strong>Type</strong>: <span class="domain">3</span><br/>
+            <strong>Served</strong>: <span class="served">Warren, MI</span><br/>
+            <strong>Blocked</strong>: <span class="blocked">Warren, MI</span><br/><br/>
+        </div>
+</div>
+</div>
+<script>
+    window.onload = () => {
+        var rows = $('#rows2');
+        var entities = "{{entity}}";
+        if(entities)
+        {
+            entities = entities.split(',')
+        }
+        console.log(entities);
+        for(i=0;i<entities.length;i++) {
+            if(i%5==0)
+            {
+            entitiesdiv = $('#entitiesdiv');
+            console.log(entities[i+1])
+            entitiesdiv.find('.address').text(entities[i]);
+            entitiesdiv.find('.name').text(entities[i+1]);
+            entitiesdiv.find('.domain').text(entities[i+2]);
+            entitiesdiv.find('.served').text(entities[i+3]);
+            entitiesdiv.find('.blocked').text(entities[i+4]);
+            rows.append(entitiesdiv.html());
+            } 
+        }
+        if (window.ethereum) {
+        web3Provider = window.ethereum;
+        try {
+            // Request account access
+            window.ethereum.enable().then(()=> {
+
+            });
+        } catch (error) {
+            // User denied account access...
+            console.error("User denied account access")
+        }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+        web3Provider = window.web3.currentProvider;
+        }
+        // If no injected web3 instance is detected, fall back to Ganache
+        else {
+        web3Provider = new Web3.providers.HttpProvider('http://0.0.0.0:7545');
+        }
+        web3 = new Web3(web3Provider);
+        
+        $.ajax({
+        url: "http://localhost:5000/EntityABI"
+        }).then(function(data) {
+            entityAbi = TruffleContract(data);
+            entityAbi.setProvider(web3Provider);
+            return entityAbi.deployed();
+        }).then((value) => {  
+            console.log("Contract Found")
+            entityDeployed = value;
+        });
+    }
+</script>

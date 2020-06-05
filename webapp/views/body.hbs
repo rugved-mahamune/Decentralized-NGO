@@ -1,1 +1,105 @@
-<h1>Hello World from Handlebars {{anyArray}}</h1>
+<script>
+    var ngoDeployed;
+    function createNGO(){
+        ngoDeployed.addNewNGO($('#ngoname')[0].value, $('#ngodomain')[0].value).then(value => {
+            window.alert("Created a new NGO");
+        });
+    }
+
+    function createinitiate(){
+        ngoDeployed.startInitiative($('#initiatename')[0].value, $('#initiateDescription')[0].value, $('#initiateTarget')[0].value, $('#initiateEtype')[0].value, true).then(value => {
+            window.alert("Created a new Initiative");
+        });
+    }
+    
+</script>
+<h1>Decentralized NGO platform</h1><br/>
+<hr><br>
+<b><u>NGOs List</u></b>
+<br> <br>
+<div id="rows"></div>
+<hr>
+<div>
+    <h4>Create New NGO</h4><br>
+    <mat-label>Name</mat-label>
+    <input type="text" placeholder="Enter name" class="ngoname" id="ngoname"><br><br>
+    <mat-label>Domain</mat-label>
+    <input matInput type="text" placeholder="Enter Domain" id="ngodomain"><br><br>
+    <button mat-raised-button color="primary" type="button" onclick="createNGO()">Create NGO</button>
+</div>
+<hr><br><br>
+<div>
+    <h4>Create New Initiative</h4><br>
+    <mat-label>Name</mat-label>
+    <input type="text" placeholder="Enter name" class="initiatename" id="initiatename"><br><br>
+    <mat-label>Description</mat-label>
+    <input matInput type="text" placeholder="Enter Description" id="initiateDescription"><br><br>
+    <mat-label>Target</mat-label>
+    <input matInput type="text" placeholder="Enter Target" id="initiateTarget"><br><br>
+    <mat-label>Entity Type</mat-label>
+    <input matInput type="text" placeholder="Enter EType" id="initiateEtype"><br><br>
+    <button mat-raised-button color="primary" type="button" onclick="createinitiate()">Create Initiative</button>
+</div>
+
+<div style="display:none;">
+    <div id="ngosdiv">
+        <div class="template">
+            <strong>Name</strong>: <span class="name">Golden Retriever</span><br/>
+            <strong>Domain</strong>: <span class="domain">3</span><br/>
+            <strong>Served</strong>: <span class="served">Warren, MI</span><br/><br/>
+        </div>
+</div>
+</div>
+<script>
+    var ngosdiv = $('#ngosdiv').find(".template");
+    var rows = $('#rows');
+    window.onload=function () {
+        var ngos = "{{anyArray}}";
+        ngos = ngos.split(',')
+        console.log(ngos);
+        for(i=0;i<ngos.length;i++) {
+            if(i%3==0)
+            {
+            ngosdiv = $('#ngosdiv');
+            console.log(ngos[i+1])
+            ngosdiv.find('.name').text(ngos[i]);
+            ngosdiv.find('.domain').text(ngos[i+1]);
+            ngosdiv.find('.served').text(ngos[i+2]);
+            rows.append(ngosdiv.html());
+            } 
+        }
+        //init function contents 
+        if (window.ethereum) {
+        web3Provider = window.ethereum;
+        try {
+            // Request account access
+            window.ethereum.enable().then(()=> {
+
+            });
+        } catch (error) {
+            // User denied account access...
+            console.error("User denied account access")
+        }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+        web3Provider = window.web3.currentProvider;
+        }
+        // If no injected web3 instance is detected, fall back to Ganache
+        else {
+        web3Provider = new Web3.providers.HttpProvider('http://0.0.0.0:7545');
+        }
+        web3 = new Web3(web3Provider);
+        
+        $.ajax({
+        url: "http://localhost:5000/NGOABI"
+        }).then(function(data) {
+            ngoAbi = TruffleContract(data);
+            ngoAbi.setProvider(web3Provider);
+            return ngoAbi.deployed();
+        }).then((value) => {  
+            console.log("Contract Found")
+            ngoDeployed = value;
+        });
+    }
+</script>

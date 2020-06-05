@@ -1,0 +1,129 @@
+<b><u>Initiatives List</u></b>
+<script>
+    var primaryDeployed, entityDeployed,initSelected;
+    function createNGO(){
+        primaryDeployed.startInitiative($('#ngoname')[0].value, $('#ngodomain')[0].value).then(value => {
+            window.alert("Created a new NGO");
+            window.reload()
+        });
+    }
+    function contribute(ele)
+    {
+        $('#contributeDiv')[0].style.display = "block";
+        initSelected = ele.children()[1].innerText;
+    }
+
+    function sendEth()
+    {
+        let amt = $('#contribAmt')[0].value;
+        let adds = $('#entityAdd')[0].value;
+        primaryDeployed.contribute(initSelected, adds, {value: amt}).then(value => {
+            window.alert("Thank you!!");
+            window.reload()
+        });
+    }
+
+    function request(ele)
+    {
+        entityDeployed.voteForContract(ele.children()[1].innerText).then(value => {
+            window.alert("Requested for the contract fullfillment");
+            window.reload()
+        });
+    }
+
+</script>
+<br> <br>
+<div id="rows1"></div>
+<div style="display:none;">
+    <div id="initsdiv">
+        <div class="template1">
+            <strong>Name</strong>: <span class="name">Golden Retriever</span><br/>
+            <strong>Description</strong>: <span class="decs">3</span><br/>
+            <strong>Target</strong>: <span class="target">Warren, MI</span><br/>
+            <strong>Amount</strong>: <span class="amount">Warren, MI</span><br/>
+            <strong>Owner</strong>: <span class="owner">Warren, MI</span><br/>
+            <strong>Type</strong>: <span class="Type">Warren, MI</span><br/>
+            <strong>Entities</strong>: <span class="EList">Warren, MI</span><br/>
+            <strong>Active</strong>: <span class="active">Warren, MI</span><br/>
+            <input type="button" value="Contribute" onclick="contribute($(this).parent())";/>
+            <input type="button" value="Request" onclick="request($(this).parent())";/>
+            <hr><br>
+        </div>
+    </div>
+</div>
+<div>
+    <div  id="contributeDiv" style="display:none;">
+    <h4>Contribute Eth</h4><br>
+    <mat-label>Name</mat-label>
+    <input type="number" placeholder="Enter Amount" id="contribAmt"/><br><br>
+    <mat-label>Vote</mat-label>
+    <input matInput type="text" placeholder="Enter Entity" id="entityAdd"/><br><br>
+    <button mat-raised-button color="primary" type="button" onclick="sendEth()">Pay</button>
+    </div>
+</div>
+<script>
+    var initsdiv = $('#initsdiv').find(".template1");
+    var rows = $('#rows1');
+    window.onload=function () {
+        var inits = "{{initlist}}";
+        inits = inits.split(',')
+        console.log(inits);
+        for(i=0;i<inits.length;i++) {
+            if(i%8==0)
+            {
+            initsdiv.find('.name').text(inits[i]);
+            initsdiv.find('.decs').text(inits[i+1]);
+            initsdiv.find('.target').text(inits[i+2]);
+            initsdiv.find('.amount').text(inits[i+3]);
+            initsdiv.find('.Type').text(inits[i+4]);
+            initsdiv.find('.EList').text(inits[i+5]);
+            initsdiv.find('.active').text(inits[i+6]);
+            initsdiv.find('.owner').text(inits[i+7]);
+            rows.append(initsdiv.html());
+            } 
+        }
+         //init function contents 
+        if (window.ethereum) {
+        web3Provider = window.ethereum;
+        try {
+            // Request account access
+            window.ethereum.enable().then(()=> {
+
+            });
+        } catch (error) {
+            // User denied account access...
+            console.error("User denied account access")
+        }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+        web3Provider = window.web3.currentProvider;
+        }
+        // If no injected web3 instance is detected, fall back to Ganache
+        else {
+        web3Provider = new Web3.providers.HttpProvider('http://0.0.0.0:7545');
+        }
+        web3 = new Web3(web3Provider);
+        
+        $.ajax({
+        url: "http://localhost:5000/PRIMARYABI"
+        }).then(function(data) {
+            primaryAbi = TruffleContract(data);
+            primaryAbi.setProvider(web3Provider);
+            return primaryAbi.deployed();
+        }).then((value) => {  
+            console.log("Contract Found")
+            primaryDeployed = value;
+        });
+        $.ajax({
+        url: "http://localhost:5000/EntityABI"
+        }).then(function(data) {
+            entityAbi = TruffleContract(data);
+            entityAbi.setProvider(web3Provider);
+            return entityAbi.deployed();
+        }).then((value) => {  
+            console.log("Contract Found")
+            entityDeployed = value;
+        });
+    }
+</script>

@@ -11,7 +11,7 @@ contract Entity {
         string name;
         uint served;
         string eType;
-        bool blocked;
+        bool allowed;
     }
     mapping (address => EData) private EntitiesList;
 
@@ -22,14 +22,7 @@ contract Entity {
         );
         _;
     }
-    //TO:DO check if the right msg.sender comes from primary
-    modifier isEntity {
-        require(
-            !EntitiesList[msg.sender].blocked,
-            "Only Legitimate Entities can request for contract"
-        );
-        _;
-    }
+    address[] entityAddresses;
     constructor(address _primary) public
     {
         owner = msg.sender;
@@ -41,16 +34,45 @@ contract Entity {
         delete EntitiesList[_address];
     }
 
-    function voteForContract(string calldata _initiativeName) external isEntity{
+    function voteForContract(string calldata _initiativeName) external{
+        require(
+            EntitiesList[msg.sender].allowed,
+            "Only Legitimate Entities can request for contract"
+        );
         primaryDeployed.requestInitiativeContract(_initiativeName, msg.sender);
         //can make this Delegate call
     }
 
-    function addNewEntity(string calldata _name, string calldata _eType) external onlyOwner {
-        EntitiesList[msg.sender] = EData({name: _name, eType: _eType, blocked: false, served: 0});
+    function addNewEntity(string calldata _name, string calldata _eType) external {
+        require(
+            !EntitiesList[msg.sender].allowed,
+            "Entity is already created"
+        );
+        EntitiesList[msg.sender] = EData({name: _name, eType: _eType, allowed: true, served: 0});
+        entityAddresses.push(msg.sender);
     }
 
     function blockEntity(address _eAddress) external onlyOwner{
-        EntitiesList[_eAddress].blocked = true;
+        EntitiesList[_eAddress].allowed = false;
+    }
+
+    function getEntitiesList() public view returns(address[] memory){
+        return entityAddresses;
+    }
+
+    function getEntitiyName(address _entityAddress) public view returns(string memory){
+        return EntitiesList[_entityAddress].name;
+    }
+
+    function getEntitiyType(address _entityAddress) public view returns(string memory){
+        return EntitiesList[_entityAddress].eType;
+    }
+
+    function getEntitiyServed(address _entityAddress) public view returns(uint){
+        return EntitiesList[_entityAddress].served;
+    }
+
+    function getEntitiyBlocked(address _entityAddress) public view returns(bool){
+        return !EntitiesList[_entityAddress].allowed;
     }
 }

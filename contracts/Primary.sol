@@ -79,35 +79,40 @@ contract Primary {
         initiativeNames.push(_name);
     }
 
-    function getOldInitiatives() public view returns (string[] memory) {
-        string[] memory content = new string[](initiativeNames.length);
-        uint j = 0;
-        for (uint i = 0; i < initiativeNames.length; i++) {
-            string memory temp = initiativeNames[i];
-            if(!InitiativesList[temp].active){
-                Initiative memory initiativeObj = InitiativesList[temp];
-            content[j] = string(abi.encodePacked(initiativeObj.name, ":", initiativeObj.description,":", addressToString(initiativeObj.initiator),":", uintToString(initiativeObj.target),":", uintToString(initiativeObj.amount)));
-            j += 1;
-            }
-        }
-        return content;
+    function getActiveInitiativeDesc(string memory _name) public view returns (string memory) {
+        return InitiativesList[_name].description;
     }
 
-    function getActiveInitiatives() public view returns (string[] memory) {
-        string[] memory content = new string[](initiativeNames.length);
-        uint j = 0;
-        for (uint i = 0; i < initiativeNames.length; i++) {
-            string memory temp = initiativeNames[i];
-            if(InitiativesList[temp].active){
-                Initiative memory initiativeObj = InitiativesList[temp];
-            content[j] = string(abi.encodePacked(initiativeObj.name, initiativeObj.description, addressToString(initiativeObj.initiator),  uintToString(initiativeObj.target), uintToString(initiativeObj.amount)));
-            j += 1;
-            }
-        }
-        return content;
+    function getActiveInitiativeTarget(string memory _name) public view returns (uint) {
+        return InitiativesList[_name].target;
     }
 
-    function contribute(string memory _name, address _eAddress) public payable {
+    function getActiveInitiativeAmt(string memory _name) public view returns (uint) {
+        return InitiativesList[_name].amount;
+    }
+
+    function getActiveInitiativeType(string memory _name) public view returns (string memory) {
+        return InitiativesList[_name].eType;
+    }
+
+    function getActiveInitiativeOwner(string memory _name) public view returns (address) {
+        return InitiativesList[_name].initiator;
+    }
+
+
+    function getActiveInitiativeEL(string memory _name) public view returns (address[] memory) {
+        return InitiativesList[_name].entities;
+    }
+
+    function getActiveInitiativeNames() public view returns (string[] memory) {
+        return initiativeNames;
+    }
+
+    function getActiveInitiativeActive(string memory _name) public view returns (bool) {
+        return InitiativesList[_name].active;
+    }
+
+    function contribute(string calldata _name, address _eAddress) external payable {
         InitiativesList[_name].amount += msg.value;
         setEntityVotes(_eAddress, _name, InitiativesList[_name].amount);
         if(InitiativesList[_name].amount >= InitiativesList[_name].target){
@@ -173,33 +178,5 @@ contract Primary {
 
     function getBalance() public view returns (uint256) {
         return address(this).balance;
-    }
-
-    function addressToString(address _addr) public pure returns(string memory) 
-    {
-        bytes32 value = bytes32(uint256(_addr));
-        bytes memory alphabet = "0123456789abcdef";
-
-        bytes memory str = new bytes(51);
-        str[0] = '0';
-        str[1] = 'x';
-        for (uint256 i = 0; i < 20; i++) {
-            str[2+i*2] = alphabet[uint8(value[i + 12] >> 4)];
-            str[3+i*2] = alphabet[uint8(value[i + 12] & 0x0f)];
-        }
-        return string(str);
-    }
-
-    function uintToString(uint _num) public pure returns (string memory) {
-        string memory op;
-        uint rem;
-        while(_num > 9)
-        {
-            rem = _num % 10;
-            _num = _num/10;
-            op = string(abi.encodePacked(op,rem));
-        }
-        op = string(abi.encodePacked(op,_num));
-        return op;
     }
 }

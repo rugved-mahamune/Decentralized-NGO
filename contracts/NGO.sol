@@ -47,23 +47,29 @@ contract NGO {
     function startInitiative(string calldata _name, string calldata _desc, uint _target, string calldata _eType, bool  _active) external {
         require(
             NgosList[msg.sender].allowed,
-            "Only Legitimate NGOs can request for contract"
+            "Only Registered NGOs can request for contract"
         );
         primaryDeployed.startInitiative(_name, msg.sender, _desc, _target, _eType, _active);
     }
 
-    function getNGOList() public view returns(string[] memory){
-        string[] memory content = new string[](ngoListArray.length);
-        uint j = 0;
-        for (uint i = 0; i < ngoListArray.length; i++) {
-            address temp = ngoListArray[i];
-            if(NgosList[temp].allowed){
-                NgoData memory ngoObj = NgosList[temp];
-                content[j] = string(abi.encodePacked(ngoObj.name, ngoObj.domain, primaryDeployed.addressToString(ngoObj.ngoAddress), primaryDeployed.uintToString(ngoObj.served)));
+    function getNGOsCount() external view returns(address[] memory){
+        return ngoListArray;
+    }
 
-            j += 1;
-            }
-        }
-        return content;
+    function getNGOList(address ngoAddress) public view returns(string memory,string memory, address, uint){
+        NgoData memory ngoObj = NgosList[ngoAddress];
+        return(ngoObj.name, ngoObj.domain, ngoObj.ngoAddress, ngoObj.served);
+    }
+
+    function getNGOName(address ngoAddress) public view returns(string memory) {
+        return NgosList[ngoAddress].name;
+    }
+
+    function getNGODomain(address ngoAddress) public view returns(string memory) {
+        return NgosList[ngoAddress].domain;
+    }
+
+    function getNGOServed(address ngoAddress) public view returns(uint) {
+        return NgosList[ngoAddress].served;
     }
 }
